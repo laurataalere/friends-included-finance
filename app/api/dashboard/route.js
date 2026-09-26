@@ -21,6 +21,9 @@ export async function GET() {
       if (expense.status === 'allocated' && ['A','B'].includes(expense.final_allocation)) projects[expense.final_allocation].expenses += Number(expense.amount);
     }
     for (const project of Object.values(projects)) project.result = project.income - project.commissions - project.expenses;
-    return Response.json({ projects, companyResult, pendingSales: sales.filter((sale) => sale.status === 'pending'), pendingExpenses: expenses.filter((expense) => expense.status === 'awaiting_allocation') });
+    return Response.json(
+      { projects, companyResult, pendingSales: sales.filter((sale) => sale.status === 'pending'), pendingExpenses: expenses.filter((expense) => expense.status === 'awaiting_allocation') },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
   } catch (error) { return Response.json({ error: error.message }, { status: 500 }); }
 }

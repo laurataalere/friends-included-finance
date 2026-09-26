@@ -15,7 +15,7 @@ export default function Home() {
   const [message, setMessage] = useState('');
 
   async function load() {
-    const response = await fetch('/api/dashboard');
+    const response = await fetch('/api/dashboard', { cache: 'no-store' });
     if (response.ok) setSummary(await response.json());
   }
   useEffect(() => { load(); }, []);
