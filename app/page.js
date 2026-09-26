@@ -16,7 +16,9 @@ export default function Home() {
 
   async function load() {
     const response = await fetch(`/api/dashboard?at=${Date.now()}`, { cache: 'no-store' });
-    if (response.ok) setSummary(await response.json());
+    const data = await response.json();
+    if (response.ok) setSummary(data);
+    else setMessage(`Dashboard connection problem: ${data.error || 'Unknown error'}`);
   }
   useEffect(() => { load(); }, []);
 
