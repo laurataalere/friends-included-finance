@@ -1,4 +1,5 @@
 import { db, employeeId } from '../../../../lib/supabase';
+import { notifyDecision } from '../../../../lib/notifications';
 
 export async function PATCH(request, { params }) {
   try {
@@ -6,7 +7,11 @@ export async function PATCH(request, { params }) {
     const client = db(); const managerId = await employeeId(client, 'Svetlana de Monte Carlo');
     const shares = [body.richard, body.anastasia, body.jeanClaude].map(Number);
     if (shares.some((share) => !Number.isFinite(share) || share < 0 || share > 100) || shares.reduce((a, b) => a + b, 0) !== 100) throw new Error('Commission shares must add to exactly 100%.');
-    const { data, error } = await client.from('sales').update({ status: 'approved', approved_richard_pct: shares[0], approved_anastasia_pct: shares[1], approved_jean_claude_pct: shares[2], approved_by: managerId, approved_at: new Date().toISOString() }).eq('id', params.id).eq('status', 'pending').select('id, status').single();
-    if (error || !data) throw new Error(error?.message || 'Supabase did not update this pending sale.'); return Response.json({ ok: true, sale: data });
+    const { data, error } = await client.from('sales').update({ status: 'approved', approved_richard_pct: shares[0], approved_anastasia_pct: shares[1], approved_jean_claude_pct: shares[2], approved_by: managerId, approved_at: new Date().toISOString() }).eq('id', params.id).eq('status', 'pending').select('*').single();
+    if (error || !data) throw new Error(error?.message || 'Supabase did not update this pending sale.');
+    const changed = [data.proposed_richard_pct, data.proposed_anastasia_pct, data.proposed_jean_claude_pct].some((value, index) => Number(value) !== shares[index]);
+    const euros = shares.map((share) => (Number(data.amount) * 0.1 * share / 100).toFixed(2));
+    await notifyDecision(client, data.reference, data.submission_chat_id, `Sale ${data.reference} approved${changed ? ' - commission split changed' : ''}. Sale €${Number(data.amount).toFixed(2)}; total commission €${(Number(data.amount) * 0.1).toFixed(2)}. Richard: ${shares[0]}% (€${euros[0]}). Anastasia: ${shares[1]}% (€${euros[1]}). Jean-Claude: ${shares[2]}% (€${euros[2]}).`);
+    return Response.json({ ok: true, sale: data });
   } catch (error) { return Response.json({ error: error.message }, { status: 400 }); }
 }
