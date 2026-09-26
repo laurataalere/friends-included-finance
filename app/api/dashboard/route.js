@@ -1,6 +1,7 @@
 import { db } from '../../../lib/supabase';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -23,7 +24,11 @@ export async function GET() {
     for (const project of Object.values(projects)) project.result = project.income - project.commissions - project.expenses;
     return Response.json(
       { projects, companyResult, pendingSales: sales.filter((sale) => sale.status === 'pending'), pendingExpenses: expenses.filter((expense) => expense.status === 'awaiting_allocation') },
-      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+      { headers: {
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+        'CDN-Cache-Control': 'no-store',
+        'Vercel-CDN-Cache-Control': 'no-store'
+      } }
     );
   } catch (error) { return Response.json({ error: error.message }, { status: 500 }); }
 }
