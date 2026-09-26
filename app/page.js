@@ -49,6 +49,7 @@ export default function Home() {
       {manager && <ManagerPanel summary={summary} reload={load} setMessage={setMessage}/>} 
       {!manager && <article className="notice"><h2>Your access</h2><p>{salesperson ? 'You can submit your sales and commission proposal.' : 'You can submit expenses and their proposed allocation.'}</p><p>Only Svetlana can approve or correct records.</p></article>}
     </section>
+    <footer className="submission"><p><b>Built by Laura Talere</b></p><p>Use the role selector to submit a sale or expense. Svetlana approves sales and confirms expense allocations. Telegram entries and approved records are copied automatically to the shared Sheets log.</p><p><a href="https://github.com/laurataalere/friends-included-finance" target="_blank" rel="noreferrer">GitHub repository</a> · <a href="https://docs.google.com/spreadsheets/d/1kdjRONEHJO4kECYEjELnTbrNX4Uk_2HowxZoFiG2GoE" target="_blank" rel="noreferrer">Google Sheets transaction log</a></p></footer>
   </main>;
 }
 
