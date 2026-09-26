@@ -7,7 +7,7 @@ export async function POST(request) {
   const update = await request.json(); const message = update.message;
   if (!message?.text || !message?.from?.id) return Response.json({ ok: true });
   const client = db(); const { data: employee } = await client.from('employees').select('*').eq('telegram_user_id', message.from.id).single();
-  if (!employee) { await telegram(message.chat.id, 'Your Telegram account is not linked to a fictional employee. Ask Svetlana to link your Telegram user ID.'); return Response.json({ ok: true }); }
+  if (!employee) { await telegram(message.chat.id, `Your Telegram ID is ${message.from.id}. Ask Svetlana to link it to a fictional employee.`); return Response.json({ ok: true }); }
   const [command, ...parts] = message.text.trim().split(' '); const fields = parts.join(' ').split('|').map((item) => item.trim());
   try {
     if (command === '/start') await telegram(message.chat.id, `Welcome, ${employee.name}. ${help}`);

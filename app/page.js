@@ -55,7 +55,7 @@ function ManagerPanel({ summary, reload, setMessage }) {
     const response = await fetch(`/api/${type}/${id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify(action) });
     const data = await response.json(); setMessage(response.ok ? 'Decision saved.' : data.error || 'Decision failed.'); if (response.ok) reload();
   }
-  return <article className="manager"><h2>Manager approvals</h2>{(summary?.pendingSales || []).map((sale) => <SaleApproval key={sale.id} sale={sale} decide={decide} />)}{(summary?.pendingExpenses || []).map((expense) => <ExpenseApproval key={expense.id} expense={expense} decide={decide} />)}{!summary?.pendingSales?.length && !summary?.pendingExpenses?.length && <p>No decisions waiting.</p>}</article>
+  return <article className="manager"><h2>Manager approvals</h2><ManagerSetup setMessage={setMessage}/>{(summary?.pendingSales || []).map((sale) => <SaleApproval key={sale.id} sale={sale} decide={decide} />)}{(summary?.pendingExpenses || []).map((expense) => <ExpenseApproval key={expense.id} expense={expense} decide={decide} />)}{!summary?.pendingSales?.length && !summary?.pendingExpenses?.length && <p>No decisions waiting.</p>}</article>
 }
 
 function SaleApproval({ sale, decide }) {
@@ -67,4 +67,10 @@ function SaleApproval({ sale, decide }) {
 function ExpenseApproval({ expense, decide }) {
   const [allocation, setAllocation] = useState(expense.proposed_allocation);
   return <form className="approval" onSubmit={(e) => { e.preventDefault(); decide('expenses', expense.id, { allocation }); }}><b>{expense.reference}</b> · {money(expense.amount)} · Proposed {expense.proposed_allocation}<select value={allocation} onChange={(e) => setAllocation(e.target.value)}><option value="A">Project A</option><option value="B">Project B</option><option value="overhead">Company overhead</option></select><button>Confirm allocation</button></form>;
+}
+
+function ManagerSetup({ setMessage }) {
+  const [employee, setEmployee] = useState('Richard Darling'); const [telegramUserId, setTelegramUserId] = useState('');
+  async function call(path, body) { const response = await fetch(path, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }); const data = await response.json(); setMessage(response.ok ? 'Manager setup saved.' : data.error || 'Setup failed.'); }
+  return <div className="approval"><b>Telegram manager setup</b><button onClick={() => call('/api/telegram/configure', {})}>Configure bot webhook</button><div className="split"><select value={employee} onChange={(e) => setEmployee(e.target.value)}>{people.filter((person) => person !== 'Svetlana de Monte Carlo').map((person) => <option key={person}>{person}</option>)}</select><input value={telegramUserId} onChange={(e) => setTelegramUserId(e.target.value)} placeholder="Telegram user ID"/><button onClick={() => call('/api/manager/telegram-link', { employee, telegramUserId })}>Link employee</button></div></div>;
 }
