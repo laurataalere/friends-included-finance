@@ -13,7 +13,7 @@ export async function POST(request) {
     }).select().single();
     if (error) throw new Error(error.code === '23505' ? 'That reference already exists.' : error.message);
     try { await syncExpense(expense, body.reporter); await client.from('expenses').update({ sheets_sync_status: 'synced' }).eq('id', expense.id); }
-    catch { await client.from('expenses').update({ sheets_sync_status: 'failed' }).eq('id', expense.id); }
+    catch (syncError) { console.error('Google Sheets expense sync failed:', syncError.message); await client.from('expenses').update({ sheets_sync_status: 'failed' }).eq('id', expense.id); }
     return Response.json({ reference: expense.reference }, { status: 201 });
   } catch (error) { return Response.json({ error: error.message }, { status: 400 }); }
 }

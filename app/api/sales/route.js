@@ -21,7 +21,7 @@ export async function POST(request) {
     }).select().single();
     if (error) throw new Error(error.code === '23505' ? 'That reference already exists.' : error.message);
     try { await syncSale(sale, body.salesperson); await client.from('sales').update({ sheets_sync_status: 'synced' }).eq('id', sale.id); }
-    catch { await client.from('sales').update({ sheets_sync_status: 'failed' }).eq('id', sale.id); }
+    catch (syncError) { console.error('Google Sheets sale sync failed:', syncError.message); await client.from('sales').update({ sheets_sync_status: 'failed' }).eq('id', sale.id); }
     return Response.json({ reference: sale.reference }, { status: 201 });
   } catch (error) { return Response.json({ error: error.message }, { status: 400 }); }
 }
