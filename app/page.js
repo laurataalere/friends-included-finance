@@ -57,7 +57,13 @@ function ManagerPanel({ summary, reload, setMessage }) {
     const response = await fetch(`/api/${type}/${id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify(action) });
     const data = await response.json(); setMessage(response.ok ? 'Decision saved.' : data.error || 'Decision failed.'); if (response.ok) reload();
   }
-  return <article className="manager"><h2>Manager approvals</h2><ManagerSetup setMessage={setMessage}/>{(summary?.pendingSales || []).map((sale) => <SaleApproval key={sale.id} sale={sale} decide={decide} />)}{(summary?.pendingExpenses || []).map((expense) => <ExpenseApproval key={expense.id} expense={expense} decide={decide} />)}{!summary?.pendingSales?.length && !summary?.pendingExpenses?.length && <p>No decisions waiting.</p>}</article>
+  async function retrySheets() {
+    const response = await fetch('/api/sheets/retry-failed', { method: 'POST' });
+    const data = await response.json();
+    setMessage(response.ok ? `Google Sheets retry complete: ${data.synced} record(s) synced.` : data.error || 'Google Sheets retry failed.');
+    if (response.ok) reload();
+  }
+  return <article className="manager"><h2>Manager approvals</h2><ManagerSetup setMessage={setMessage}/><button onClick={retrySheets}>Retry failed Google Sheets sync</button>{(summary?.pendingSales || []).map((sale) => <SaleApproval key={sale.id} sale={sale} decide={decide} />)}{(summary?.pendingExpenses || []).map((expense) => <ExpenseApproval key={expense.id} expense={expense} decide={decide} />)}{!summary?.pendingSales?.length && !summary?.pendingExpenses?.length && <p>No decisions waiting.</p>}</article>
 }
 
 function SaleApproval({ sale, decide }) {
