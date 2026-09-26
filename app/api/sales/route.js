@@ -7,7 +7,11 @@ export async function POST(request) {
     if (shares.some((share) => !Number.isFinite(share) || share < 0 || share > 100) || shares.reduce((a, b) => a + b, 0) !== 100) {
       return Response.json({ error: 'Commission shares must add to exactly 100%.' }, { status: 400 });
     }
-    if (!body.reference || !body.customer || !body.description || !['A','B'].includes(body.project) || Number(body.amount) <= 0) throw new Error('Complete every required field with a positive amount.');
+    const missing = [
+      !body.reference && 'reference', !body.customer && 'customer', !body.description && 'description',
+      !['A', 'B'].includes(body.project) && 'project', !(Number(body.amount) > 0) && 'positive amount'
+    ].filter(Boolean);
+    if (missing.length) throw new Error(`Please provide: ${missing.join(', ')}.`);
     const client = db();
     const salespersonId = await employeeId(client, body.salesperson);
     const { error } = await client.from('sales').insert({
