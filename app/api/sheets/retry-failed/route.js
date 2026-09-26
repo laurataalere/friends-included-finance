@@ -16,14 +16,14 @@ export async function POST() {
     let failed = 0;
     for (const sale of failedSales) {
       try {
-        await syncSale(sale, names.get(sale.submitted_by) || 'Unknown');
+        await syncSale(sale, names.get(sale.salesperson_id) || 'Unknown');
         await client.from('sales').update({ sheets_sync_status: 'synced' }).eq('id', sale.id);
         synced += 1;
       } catch (error) { console.error('Google Sheets sale retry failed:', error.message); failed += 1; }
     }
     for (const expense of failedExpenses) {
       try {
-        await syncExpense(expense, names.get(expense.reported_by) || 'Unknown');
+        await syncExpense(expense, names.get(expense.reporter_id) || 'Unknown');
         await client.from('expenses').update({ sheets_sync_status: 'synced' }).eq('id', expense.id);
         synced += 1;
       } catch (error) { console.error('Google Sheets expense retry failed:', error.message); failed += 1; }
