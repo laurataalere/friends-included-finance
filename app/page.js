@@ -55,11 +55,16 @@ function ManagerPanel({ summary, reload, setMessage }) {
     const response = await fetch(`/api/${type}/${id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify(action) });
     const data = await response.json(); setMessage(response.ok ? 'Decision saved.' : data.error || 'Decision failed.'); if (response.ok) reload();
   }
-  return <article className="manager"><h2>Manager approvals</h2>{(summary?.pendingSales || []).map((sale) => <SaleApproval key={sale.id} sale={sale} decide={decide} />)}{(summary?.pendingExpenses || []).map((expense) => <div className="row" key={expense.id}><span><b>{expense.reference}</b> · {money(expense.amount)} · Proposed {expense.proposed_allocation}</span><button onClick={() => decide('expenses', expense.id, { allocation: expense.proposed_allocation })}>Confirm allocation</button></div>)}{!summary?.pendingSales?.length && !summary?.pendingExpenses?.length && <p>No decisions waiting.</p>}</article>
+  return <article className="manager"><h2>Manager approvals</h2>{(summary?.pendingSales || []).map((sale) => <SaleApproval key={sale.id} sale={sale} decide={decide} />)}{(summary?.pendingExpenses || []).map((expense) => <ExpenseApproval key={expense.id} expense={expense} decide={decide} />)}{!summary?.pendingSales?.length && !summary?.pendingExpenses?.length && <p>No decisions waiting.</p>}</article>
 }
 
 function SaleApproval({ sale, decide }) {
   const [shares, setShares] = useState({ richard: sale.proposed_richard_pct, anastasia: sale.proposed_anastasia_pct, jeanClaude: sale.proposed_jean_claude_pct });
   const total = Number(shares.richard) + Number(shares.anastasia) + Number(shares.jeanClaude);
   return <form className="approval" onSubmit={(e) => { e.preventDefault(); decide('sales', sale.id, { approve: true, ...shares }); }}><b>{sale.reference}</b> · {money(sale.amount)} · Project {sale.project}<div className="split"><label>Richard<input type="number" min="0" max="100" value={shares.richard} onChange={(e) => setShares({...shares, richard: e.target.value})}/></label><label>Anastasia<input type="number" min="0" max="100" value={shares.anastasia} onChange={(e) => setShares({...shares, anastasia: e.target.value})}/></label><label>Jean-Claude<input type="number" min="0" max="100" value={shares.jeanClaude} onChange={(e) => setShares({...shares, jeanClaude: e.target.value})}/></label></div><small>Total: {total}%</small><button disabled={total !== 100}>Approve sale</button></form>;
+}
+
+function ExpenseApproval({ expense, decide }) {
+  const [allocation, setAllocation] = useState(expense.proposed_allocation);
+  return <form className="approval" onSubmit={(e) => { e.preventDefault(); decide('expenses', expense.id, { allocation }); }}><b>{expense.reference}</b> · {money(expense.amount)} · Proposed {expense.proposed_allocation}<select value={allocation} onChange={(e) => setAllocation(e.target.value)}><option value="A">Project A</option><option value="B">Project B</option><option value="overhead">Company overhead</option></select><button>Confirm allocation</button></form>;
 }
