@@ -5,8 +5,8 @@ export async function POST() {
   try {
     const client = db();
     const [{ data: failedSales, error: salesError }, { data: failedExpenses, error: expensesError }, { data: employees, error: employeesError }] = await Promise.all([
-      client.from('sales').select('*').eq('sheets_sync_status', 'failed'),
-      client.from('expenses').select('*').eq('sheets_sync_status', 'failed'),
+      client.from('sales').select('*').neq('sheets_sync_status', 'synced'),
+      client.from('expenses').select('*').neq('sheets_sync_status', 'synced'),
       client.from('employees').select('id,name')
     ]);
     if (salesError || expensesError || employeesError) throw new Error(salesError?.message || expensesError?.message || employeesError?.message);
