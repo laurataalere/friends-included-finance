@@ -41,7 +41,10 @@ export async function GET(request) {
       pendingSales: manager ? sales.filter((sale) => sale.status === 'pending').map(enrichSale) : [],
       pendingExpenses: manager ? expenses.filter((expense) => expense.status === 'awaiting_allocation').map(enrichExpense) : [],
       records: { sales: visibleSales.map(enrichSale), expenses: visibleExpenses.map(enrichExpense) },
-      notifications: notifications.filter((notification) => visibleReferences.has(notification.transaction_reference))
+      notifications: notifications.filter((notification) => visibleReferences.has(notification.transaction_reference)).map((notification) => ({
+        ...notification,
+        status: !notification.recipient_chat_id && notification.status === 'pending' ? 'No Telegram recipient linked' : notification.status
+      }))
     }, { headers: { 'Cache-Control': 'no-store, max-age=0, must-revalidate', 'CDN-Cache-Control': 'no-store', 'Vercel-CDN-Cache-Control': 'no-store' } });
   } catch (error) { return Response.json({ error: error.message }, { status: 500 }); }
 }
